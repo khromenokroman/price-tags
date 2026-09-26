@@ -97,7 +97,7 @@ curl -X POST http://127.0.0.1:8082/api/products -d '{"name": "Хлеб белы�
 [cpp-httplib](https://github.com/yhirose/cpp-httplib) v0.18.7 встроен в проект (`third_party/httplib`),
 `fmt` подключается в header-only режиме: во время работы нужны только системные библиотеки C/C++.
 
-Debian 13:
+Debian 12 и 13:
 
 ```bash
 apt install -y build-essential cmake dpkg-dev libfmt-dev nlohmann-json3-dev libgtest-dev libgmock-dev
@@ -156,7 +156,9 @@ apt install -y ./price-tags_<версия>_amd64.deb
 ## Релизы
 
 Сборка настроена в GitHub Actions (`.github/workflows/release.yml`): на каждый push и pull request в `master`
-проект собирается в контейнере Debian 13, прогоняются тесты и собирается DEB-пакет. Чтобы выпустить релиз,
+проект собирается в контейнерах Debian 12 и Debian 13, прогоняются тесты и собираются DEB-пакеты
+(`price-tags_<версия>_amd64-debian12.deb` и `…-debian13.deb`), они доступны в артефактах запуска и
+публикуются в релизе. Чтобы выпустить релиз,
 нужно поставить тег `v<версия>`, совпадающий с версией в `CMakeLists.txt`, и отправить его:
 
 ```bash
