@@ -121,10 +121,7 @@ td.actions { width: 1%; white-space: nowrap; text-align: right; }
 .tag-price .rub { font-size: var(--fs); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .tag-price .kop { font-size: calc(var(--fs) * .45); margin-left: 1cqw; font-variant-numeric: tabular-nums; }
 .tag-price .cur { font-size: calc(var(--fs) * .36); font-weight: 600; margin-left: 1.5cqw; align-self: flex-end; line-height: 1.3; }
-.tag-foot { flex: none; display: flex; justify-content: space-between; gap: 4cqw; font-size: min(6.5cqh, 4.5cqw); border-top: .2mm solid #000;
-  padding-top: 1.5cqh; white-space: nowrap; }
-.tag-foot .sign { flex: 1; display: flex; gap: 1cqw; max-width: 60%; }
-.tag-foot .sign i { flex: 1; border-bottom: .2mm solid #000; }
+.tag-art { flex: none; font-size: min(6.5cqh, 4.5cqw); color: #333; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @page { size: A4 portrait; margin: 0; }
 @media print {
   body { background: #fff; }
@@ -180,7 +177,6 @@ td.actions { width: 1%; white-space: nowrap; text-align: right; }
             <button class="btn link" id="p-scale-reset" title="Вернуть 100%">Сброс</button>
           </div>
         </div>
-        <label class="field"><span>Дата на ценнике</span><input id="p-date" type="date"></label>
         <div class="field"><span>Товары</span>
           <div class="picker">
             <input id="p-search" type="search" placeholder="Найти товар и нажать Enter" autocomplete="off">
@@ -404,7 +400,7 @@ const printForm = (() => {
   const $ = id => document.getElementById(id);
   const SCALE = [60, 200, 100];
   const scale = $("p-scale");
-  const orgSel = $("p-org"), cols = $("p-cols"), rows = $("p-rows"), date = $("p-date"), search = $("p-search"),
+  const orgSel = $("p-org"), cols = $("p-cols"), rows = $("p-rows"), search = $("p-search"),
     suggest = $("p-suggest"), chosenList = $("p-chosen"), sheets = $("p-sheets"), summary = $("p-summary");
   let allProducts = [], allOrgs = [], chosen = [], cursor = 0;
 
@@ -418,7 +414,6 @@ const printForm = (() => {
 
   const clamp = (v, [lo, hi], def) => { const n = parseInt(v, 10); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : def; };
   const grid = () => [clamp(cols.value, LIMITS.cols, 3), clamp(rows.value, LIMITS.rows, 7)];
-  const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
   const byId = id => allProducts.find(p => p.id === id);
 
   const presetBox = $("p-presets");
@@ -427,7 +422,7 @@ const printForm = (() => {
       onclick: () => { cols.value = c; rows.value = r; update(); } }));
   }
 
-  function tag(p, org, dateText) {
+  function tag(p, org) {
     const rub = Math.floor(p.price_kop / 100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     const kop = String(p.price_kop % 100).padStart(2, "0");
     return el("div", { class: "tag" }, el("div", { class: "tag-in" },
@@ -436,19 +431,17 @@ const printForm = (() => {
       el("div", { class: "tag-row" }, el("span", { class: "tag-unit", textContent: `за ${p.unit}` }),
         el("div", { class: "tag-price", style: `--len: ${Math.max(2.6, rub.replace(/\u202f/g, "").length + 0.3 * (rub.match(/\u202f/g) || []).length)}` }, el("span", { class: "rub", textContent: rub }), el("span", { class: "kop", textContent: kop }),
           el("span", { class: "cur", textContent: "₽" }))),
-      el("div", { class: "tag-foot" }, el("span", { textContent: p.article ? `${dateText} · Арт. ${p.article}` : dateText }),
-        el("span", { class: "sign" }, "Подпись", el("i")))));
+      el("div", { class: "tag-art", textContent: p.article ? `Арт. ${p.article}` : "\u00a0" })));
   }
 
   function renderSheets() {
     const [c, r] = grid();
     const per = c * r;
     const org = (allOrgs.find(o => String(o.id) === orgSel.value) || {}).name || "";
-    const dateText = date.value ? date.value.split("-").reverse().join(".") : "";
     const items = chosen.map(byId).filter(Boolean);
     const pages = [];
     for (let i = 0; i < items.length; i += per) {
-      const sheet = el("div", { class: "sheet" }, ...items.slice(i, i + per).map(p => tag(p, org, dateText)));
+      const sheet = el("div", { class: "sheet" }, ...items.slice(i, i + per).map(p => tag(p, org)));
       sheet.style.setProperty("--cols", c);
       sheet.style.setProperty("--rows", r);
       pages.push(sheet);
@@ -532,7 +525,6 @@ const printForm = (() => {
   const showScale = () => { $("p-scale-val").textContent = `${scale.value}%`; };
   scale.addEventListener("input", () => { showScale(); renderSheets(); save(); });
   $("p-scale-reset").addEventListener("click", () => { scale.value = SCALE[2]; showScale(); renderSheets(); save(); });
-  date.addEventListener("change", renderSheets);
   $("p-all").addEventListener("click", () => {
     const have = new Set(chosen);
     chosen.push(...allProducts.map(p => p.id).filter(id => !have.has(id)));
@@ -549,7 +541,6 @@ const printForm = (() => {
   scale.value = clamp(saved.scale, SCALE, SCALE[2]);
   showScale();
   chosen = Array.isArray(saved.products) ? saved.products.filter(Number.isInteger) : [];
-  date.value = today();
 
   async function load() {
     try {
