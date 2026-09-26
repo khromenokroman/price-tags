@@ -5,6 +5,7 @@
 #include <iostream>
 #include <thread>
 
+#include "catalog.hpp"
 #include "config.hpp"
 #include "web_server.hpp"
 
@@ -21,7 +22,10 @@ int main(int argc, char *argv[]) {
         sigaddset(&signals, SIGTERM);
         pthread_sigmask(SIG_BLOCK, &signals, nullptr);
 
-        WebServer server{cfg};
+        Catalog catalog{cfg.data_file};
+        syslog(LOG_NOTICE, "Загружены справочники(%s): организаций %zu, товаров %zu", cfg.data_file.c_str(), catalog.organizations().size(),
+               catalog.products().size());
+        WebServer server{cfg, catalog};
         std::jthread signal_thread{[&server, &signals] {
             int sig{};
             sigwait(&signals, &sig);

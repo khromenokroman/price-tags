@@ -21,6 +21,7 @@ configure_file(Version.in Version @ONLY)
 configure_file(systemd/${PROJECT_NAME}.service.in ${PROJECT_NAME}.service @ONLY)
 
 add_library(${PROJECT_NAME}-core STATIC
+        src/api.cpp
         src/catalog.cpp
         src/config.cpp
         src/index_page.cpp
@@ -39,6 +40,7 @@ if (BUILD_TESTS)
     enable_testing()
     find_package(GTest REQUIRED)
     add_executable(${PROJECT_NAME}-tests
+            tests/api_test.cpp
             tests/catalog_test.cpp
             tests/config_test.cpp
     )

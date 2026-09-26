@@ -1,6 +1,7 @@
 #pragma once
 #include <httplib.h>
 
+#include "catalog.hpp"
 #include "config.hpp"
 
 /**
@@ -11,8 +12,9 @@ class WebServer {
     /**
      * @brief Конструктор.
      * @param config Конфигурация (адрес и порт); должна жить дольше сервера.
+     * @param catalog Справочники; должны жить дольше сервера.
      */
-    explicit WebServer(Config const &config);
+    WebServer(Config const &config, Catalog &catalog);
 
     /**
      * @brief Регистрирует маршруты и запускает сервер. Блокирует поток до вызова stop().
@@ -28,4 +30,5 @@ class WebServer {
    private:
     httplib::Server m_server; // 824
     Config const &m_config;   // 8
+    Catalog &m_catalog;       // 8
 };

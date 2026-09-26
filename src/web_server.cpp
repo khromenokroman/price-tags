@@ -5,15 +5,25 @@
 
 #include <stdexcept>
 
+#include "api.hpp"
 #include "index_page.hpp"
 
-WebServer::WebServer(Config const &config) : m_config{config} {}
+namespace {
+
+/// Максимальный размер тела запроса, байт.
+constexpr std::size_t MAX_BODY_SIZE = 64 * 1024;
+
+} // namespace
+
+WebServer::WebServer(Config const &config, Catalog &catalog) : m_config{config}, m_catalog{catalog} {}
 
 void WebServer::run() {
     m_server.Get("/", [](httplib::Request const &req, httplib::Response &res) {
         syslog(LOG_DEBUG, "Поступил запрос('/') от %s:%d", req.remote_addr.c_str(), req.remote_port);
         res.set_content(index_page().data(), index_page().size(), "text/html; charset=utf-8");
     });
+    register_api(m_server, m_catalog);
+    m_server.set_payload_max_length(MAX_BODY_SIZE);
 
     m_server.set_socket_options([](socket_t sock) {
         int const opt = 1;
