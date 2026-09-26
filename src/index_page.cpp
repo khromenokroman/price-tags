@@ -80,6 +80,9 @@ td.actions { width: 1%; white-space: nowrap; text-align: right; }
 .presets .btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .grid-inputs { display: flex; align-items: center; gap: 8px; color: var(--muted); }
 .grid-inputs input { width: 64px; }
+.scale { display: flex; align-items: center; gap: 10px; }
+.scale input[type=range] { flex: 1; accent-color: var(--accent); padding: 0; border: none; background: none; }
+.scale output { width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
 .hint { color: var(--muted); font-size: 12px; }
 .picker { position: relative; }
 .picker input { width: 100%; }
@@ -107,10 +110,10 @@ td.actions { width: 1%; white-space: nowrap; text-align: right; }
 .tag { container-type: size; border: .3mm dashed #999; margin: -.15mm; overflow: hidden; }
 .tag-in { height: 100%; display: flex; flex-direction: column; padding: 4cqmin 5cqmin; gap: 2.5cqh;
   font-family: "Noto Sans", "DejaVu Sans", Arial, sans-serif; }
-.tag-org { flex: none; font-size: clamp(5px, min(7cqh, 5cqw), 5mm); font-weight: 600; text-transform: uppercase; letter-spacing: .02em;
+.tag-org { flex: none; text-align: center; font-size: clamp(5px, min(7cqh, 5cqw), 5mm); font-weight: 600; text-transform: uppercase; letter-spacing: .02em;
   border-bottom: .3mm solid #000; padding-bottom: 1.5cqh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tag-name-box { flex: 1 0 auto; display: flex; align-items: center; justify-content: center; text-align: center; }
-.tag-name { font-size: min(10cqh, 7cqw); font-weight: 600; line-height: 1.15; overflow: hidden; display: -webkit-box;
+.tag-name-box { flex: 1 1 0; min-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; text-align: center; }
+.tag-name { font-size: calc(min(10cqh, 7cqw) * var(--name-scale, 1)); font-weight: 600; line-height: 1.15; overflow: hidden; display: -webkit-box;
   -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
 .tag-row { flex: none; display: flex; align-items: flex-end; justify-content: space-between; gap: 3cqw; }
 .tag-unit { font-size: min(7cqh, 5cqw); color: #333; white-space: nowrap; padding-bottom: .5cqh; }
@@ -169,6 +172,13 @@ td.actions { width: 1%; white-space: nowrap; text-align: right; }
             <span id="p-cell"></span>
           </div>
           <div class="hint">колонок × рядов, от 1×1 до 6×15</div>
+        </div>
+        <div class="field"><span>Шрифт наименования</span>
+          <div class="scale">
+            <input id="p-scale" type="range" min="60" max="200" step="10" aria-label="Размер шрифта наименования, %">
+            <output id="p-scale-val"></output>
+            <button class="btn link" id="p-scale-reset" title="Вернуть 100%">Сброс</button>
+          </div>
         </div>
         <label class="field"><span>Дата на ценнике</span><input id="p-date" type="date"></label>
         <div class="field"><span>Товары</span>
@@ -392,6 +402,8 @@ const printForm = (() => {
   const PRESETS = [[2, 4], [3, 7], [4, 10]];
   const LIMITS = { cols: [1, 6], rows: [1, 15] };
   const $ = id => document.getElementById(id);
+  const SCALE = [60, 200, 100];
+  const scale = $("p-scale");
   const orgSel = $("p-org"), cols = $("p-cols"), rows = $("p-rows"), date = $("p-date"), search = $("p-search"),
     suggest = $("p-suggest"), chosenList = $("p-chosen"), sheets = $("p-sheets"), summary = $("p-summary");
   let allProducts = [], allOrgs = [], chosen = [], cursor = 0;
@@ -401,7 +413,7 @@ const printForm = (() => {
     set(v) { try { localStorage.setItem("print", JSON.stringify(v)); } catch (e) { /* хранилище недоступно */ } },
   };
   function save() {
-    store.set({ org: orgSel.value, cols: cols.value, rows: rows.value, products: chosen });
+    store.set({ org: orgSel.value, cols: cols.value, rows: rows.value, scale: scale.value, products: chosen });
   }
 
   const clamp = (v, [lo, hi], def) => { const n = parseInt(v, 10); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : def; };
@@ -441,10 +453,22 @@ const printForm = (() => {
       sheet.style.setProperty("--rows", r);
       pages.push(sheet);
     }
+    sheets.style.setProperty("--name-scale", clamp(scale.value, SCALE, SCALE[2]) / 100);
     sheets.replaceChildren(...pages);
+    fitNames();
     const n = pages.length;
     summary.textContent = items.length ? `${items.length} шт., ${n} ${n === 1 ? "лист" : n < 5 ? "листа" : "листов"}` : "добавьте товары слева";
     $("p-print").disabled = !items.length;
+  }
+
+  /* Наименование показывает столько строк, сколько помещается между шапкой и ценой (до 4). */
+  function fitNames() {
+    for (const name of sheets.querySelectorAll(".tag-name")) {
+      const box = name.parentElement.clientHeight;
+      if (!box) continue;
+      const lh = parseFloat(getComputedStyle(name).lineHeight);
+      name.style.webkitLineClamp = String(Math.max(1, Math.min(4, Math.floor(box / lh))));
+    }
   }
 
   function renderChosen() {
@@ -505,6 +529,9 @@ const printForm = (() => {
     inp.addEventListener("change", () => { const [c, r] = grid(); cols.value = c; rows.value = r; update(); });
   }
   orgSel.addEventListener("change", update);
+  const showScale = () => { $("p-scale-val").textContent = `${scale.value}%`; };
+  scale.addEventListener("input", () => { showScale(); renderSheets(); save(); });
+  $("p-scale-reset").addEventListener("click", () => { scale.value = SCALE[2]; showScale(); renderSheets(); save(); });
   date.addEventListener("change", renderSheets);
   $("p-all").addEventListener("click", () => {
     const have = new Set(chosen);
@@ -513,10 +540,14 @@ const printForm = (() => {
   });
   $("p-clear").addEventListener("click", () => { chosen = []; update(); });
   $("p-print").addEventListener("click", () => window.print());
+  window.addEventListener("beforeprint", fitNames);
+  window.addEventListener("afterprint", fitNames);
 
   const saved = store.get();
   cols.value = clamp(saved.cols, LIMITS.cols, 3);
   rows.value = clamp(saved.rows, LIMITS.rows, 7);
+  scale.value = clamp(saved.scale, SCALE, SCALE[2]);
+  showScale();
   chosen = Array.isArray(saved.products) ? saved.products.filter(Number.isInteger) : [];
   date.value = today();
 
