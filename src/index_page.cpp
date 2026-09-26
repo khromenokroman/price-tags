@@ -72,6 +72,67 @@ td.actions { width: 1%; white-space: nowrap; text-align: right; }
   box-shadow: 0 4px 16px rgba(0,0,0,.12); }
 #toast.ok { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 #toast[hidden] { display: none; }
+.print-layout { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 20px; align-items: start; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: grid; gap: 16px; }
+.field { display: grid; gap: 6px; }
+.field > span { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.presets .btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.grid-inputs { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+.grid-inputs input { width: 64px; }
+.hint { color: var(--muted); font-size: 12px; }
+.picker { position: relative; }
+.picker input { width: 100%; }
+.suggest { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5; background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,.12); max-height: 280px; overflow-y: auto; }
+.suggest[hidden] { display: none; }
+.suggest button { display: flex; width: 100%; gap: 8px; justify-content: space-between; border: none; background: none; color: var(--text);
+  font: inherit; text-align: left; padding: 7px 10px; cursor: pointer; }
+.suggest button:hover, .suggest button.cur { background: var(--accent-soft); }
+.suggest .price { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.suggest .none { padding: 7px 10px; color: var(--muted); }
+.chosen { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: 6px; max-height: 320px; overflow-y: auto; }
+.chosen li { display: flex; align-items: center; gap: 8px; padding: 5px 4px 5px 10px; border-bottom: 1px solid var(--border); }
+.chosen li:last-child { border-bottom: none; }
+.chosen .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chosen .price { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chosen .empty { padding: 16px 10px; }
+.row-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.print-go { width: 100%; padding: 10px; font-size: 15px; }
+.preview-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; color: var(--muted); }
+.preview-head h1 { font-size: 20px; margin: 0; font-weight: 650; color: var(--text); }
+.sheets { display: grid; gap: 24px; justify-content: start; }
+.sheet { width: 210mm; height: 296mm; padding: 8mm; background: #fff; color: #000; box-shadow: 0 2px 12px rgba(0,0,0,.18);
+  display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); grid-template-rows: repeat(var(--rows), minmax(0, 1fr)); }
+.tag { container-type: size; border: .3mm dashed #999; margin: -.15mm; overflow: hidden; }
+.tag-in { height: 100%; display: flex; flex-direction: column; padding: 4cqmin 5cqmin; gap: 2.5cqh;
+  font-family: "Noto Sans", "DejaVu Sans", Arial, sans-serif; }
+.tag-org { flex: none; font-size: clamp(5px, min(7cqh, 5cqw), 5mm); font-weight: 600; text-transform: uppercase; letter-spacing: .02em;
+  border-bottom: .3mm solid #000; padding-bottom: 1.5cqh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tag-name { flex: none; font-size: min(10cqh, 7cqw); font-weight: 600; line-height: 1.15; overflow: hidden; display: -webkit-box;
+  -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
+.tag-row { margin-top: auto; flex: none; display: flex; align-items: flex-end; justify-content: space-between; gap: 3cqw; }
+.tag-unit { font-size: min(7cqh, 5cqw); color: #333; white-space: nowrap; padding-bottom: .5cqh; }
+.tag-price { --fs: min(34cqh, calc(66cqw / var(--len, 3))); display: flex; align-items: flex-start; line-height: .9; font-weight: 800; }
+.tag-price .rub { font-size: var(--fs); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.tag-price .kop { font-size: calc(var(--fs) * .45); margin-left: 1cqw; font-variant-numeric: tabular-nums; }
+.tag-price .cur { font-size: calc(var(--fs) * .36); font-weight: 600; margin-left: 1.5cqw; align-self: flex-end; line-height: 1.3; }
+.tag-foot { flex: none; display: flex; justify-content: space-between; gap: 4cqw; font-size: min(6.5cqh, 4.5cqw); border-top: .2mm solid #000;
+  padding-top: 1.5cqh; white-space: nowrap; }
+.tag-foot .sign { flex: 1; display: flex; gap: 1cqw; max-width: 60%; }
+.tag-foot .sign i { flex: 1; border-bottom: .2mm solid #000; }
+@page { size: A4 portrait; margin: 0; }
+@media print {
+  body { background: #fff; }
+  .bar, .toolbar, .panel, .preview-head, #toast, section:not(#print) { display: none !important; }
+  main { max-width: none; padding: 0; }
+  .print-layout { display: block; }
+  .sheets { zoom: 1; gap: 0; }
+  .sheet { box-shadow: none; break-after: page; }
+  .sheet:last-child { break-after: auto; }
+}
+@media screen { .sheets { zoom: .5; } }
+@media screen and (max-width: 900px) { .print-layout { grid-template-columns: minmax(0, 1fr); } .sheets { zoom: .4; } }
 @media (max-width: 640px) {
   .bar-in { flex-direction: column; gap: 0; }
   .brand { padding-bottom: 6px; }
@@ -89,11 +150,45 @@ td.actions { width: 1%; white-space: nowrap; text-align: right; }
     Ценники
   </div>
   <nav class="tabs" id="tabs">
+    <button class="tab" data-tab="print">Печать</button>
     <button class="tab" data-tab="products">Товары</button>
     <button class="tab" data-tab="orgs">Организации</button>
   </nav>
 </div></header>
 <main>
+  <section id="print">
+    <div class="print-layout">
+      <div class="panel">
+        <label class="field"><span>Организация</span><select id="p-org"></select></label>
+        <div class="field"><span>Сетка на листе A4</span>
+          <div class="presets" id="p-presets"></div>
+          <div class="grid-inputs">
+            <input id="p-cols" type="number" min="1" max="6" aria-label="Колонок"> ×
+            <input id="p-rows" type="number" min="1" max="15" aria-label="Рядов">
+            <span id="p-cell"></span>
+          </div>
+          <div class="hint">колонок × рядов, от 1×1 до 6×15</div>
+        </div>
+        <label class="field"><span>Дата на ценнике</span><input id="p-date" type="date"></label>
+        <div class="field"><span>Товары</span>
+          <div class="picker">
+            <input id="p-search" type="search" placeholder="Найти товар и нажать Enter" autocomplete="off">
+            <div class="suggest" id="p-suggest" hidden></div>
+          </div>
+          <ul class="chosen" id="p-chosen"></ul>
+          <div class="row-btns">
+            <button class="btn" id="p-all">Все товары</button>
+            <button class="btn link danger" id="p-clear">Очистить</button>
+          </div>
+        </div>
+        <button class="btn primary print-go" id="p-print">Печать</button>
+      </div>
+      <div>
+        <div class="preview-head"><h1>Предпросмотр</h1><span id="p-summary"></span></div>
+        <div class="sheets" id="p-sheets"></div>
+      </div>
+    </div>
+  </section>
   <section id="products"></section>
   <section id="orgs"></section>
 </main>
@@ -291,11 +386,163 @@ const orgs = catalogTable(document.getElementById("orgs"), {
   ],
 });
 
+/* Печать: выбор организации, товаров и сетки, раскладка ценников по листам A4. */
+const printForm = (() => {
+  const PRESETS = [[2, 4], [3, 7], [4, 10]];
+  const LIMITS = { cols: [1, 6], rows: [1, 15] };
+  const $ = id => document.getElementById(id);
+  const orgSel = $("p-org"), cols = $("p-cols"), rows = $("p-rows"), date = $("p-date"), search = $("p-search"),
+    suggest = $("p-suggest"), chosenList = $("p-chosen"), sheets = $("p-sheets"), summary = $("p-summary");
+  let allProducts = [], allOrgs = [], chosen = [], cursor = 0;
+
+  const store = {
+    get() { try { return JSON.parse(localStorage.getItem("print") || "{}"); } catch (e) { return {}; } },
+    set(v) { try { localStorage.setItem("print", JSON.stringify(v)); } catch (e) { /* хранилище недоступно */ } },
+  };
+  function save() {
+    store.set({ org: orgSel.value, cols: cols.value, rows: rows.value, products: chosen });
+  }
+
+  const clamp = (v, [lo, hi], def) => { const n = parseInt(v, 10); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : def; };
+  const grid = () => [clamp(cols.value, LIMITS.cols, 3), clamp(rows.value, LIMITS.rows, 7)];
+  const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+  const byId = id => allProducts.find(p => p.id === id);
+
+  const presetBox = $("p-presets");
+  for (const [c, r] of PRESETS) {
+    presetBox.append(el("button", { class: "btn", textContent: `${c}×${r}`,
+      onclick: () => { cols.value = c; rows.value = r; update(); } }));
+  }
+
+  function tag(p, org, dateText) {
+    const rub = Math.floor(p.price_kop / 100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    const kop = String(p.price_kop % 100).padStart(2, "0");
+    return el("div", { class: "tag" }, el("div", { class: "tag-in" },
+      el("div", { class: "tag-org", textContent: org || " " }),
+      el("div", { class: "tag-name", textContent: p.name, title: p.name }),
+      el("div", { class: "tag-row" }, el("span", { class: "tag-unit", textContent: `за ${p.unit}` }),
+        el("div", { class: "tag-price", style: `--len: ${Math.max(2.6, rub.replace(/\u202f/g, "").length + 0.3 * (rub.match(/\u202f/g) || []).length)}` }, el("span", { class: "rub", textContent: rub }), el("span", { class: "kop", textContent: kop }),
+          el("span", { class: "cur", textContent: "₽" }))),
+      el("div", { class: "tag-foot" }, el("span", { textContent: p.article ? `${dateText} · Арт. ${p.article}` : dateText }),
+        el("span", { class: "sign" }, "Подпись", el("i")))));
+  }
+
+  function renderSheets() {
+    const [c, r] = grid();
+    const per = c * r;
+    const org = (allOrgs.find(o => String(o.id) === orgSel.value) || {}).name || "";
+    const dateText = date.value ? date.value.split("-").reverse().join(".") : "";
+    const items = chosen.map(byId).filter(Boolean);
+    const pages = [];
+    for (let i = 0; i < items.length; i += per) {
+      const sheet = el("div", { class: "sheet" }, ...items.slice(i, i + per).map(p => tag(p, org, dateText)));
+      sheet.style.setProperty("--cols", c);
+      sheet.style.setProperty("--rows", r);
+      pages.push(sheet);
+    }
+    sheets.replaceChildren(...pages);
+    const n = pages.length;
+    summary.textContent = items.length ? `${items.length} шт., ${n} ${n === 1 ? "лист" : n < 5 ? "листа" : "листов"}` : "добавьте товары слева";
+    $("p-print").disabled = !items.length;
+  }
+
+  function renderChosen() {
+    const items = chosen.map(byId).filter(Boolean);
+    chosenList.replaceChildren(...(items.length ? items.map(p => el("li", {},
+      el("span", { class: "nm", textContent: p.name, title: p.name }),
+      el("span", { class: "price", textContent: formatPrice(p.price_kop) }),
+      el("button", { class: "btn link danger", textContent: "×", title: "Убрать",
+        onclick: () => { chosen = chosen.filter(id => id !== p.id); update(); } })))
+      : [el("li", { class: "empty hint", textContent: "Список пуст" })]));
+  }
+
+  function update() {
+    const [c, r] = grid();
+    for (const b of presetBox.children) b.classList.toggle("active", b.textContent === `${c}×${r}`);
+    $("p-cell").textContent = `ячейка ${((194 / c)).toFixed(0)}×${((280 / r)).toFixed(0)} мм`;
+    renderChosen();
+    renderSheets();
+    save();
+  }
+
+  function candidates() {
+    const q = search.value.trim().toLowerCase();
+    if (!q) return [];
+    return allProducts.filter(p => !chosen.includes(p.id) &&
+      (p.name.toLowerCase().includes(q) || p.article.toLowerCase().includes(q))).slice(0, 30);
+  }
+  function renderSuggest() {
+    const list = candidates();
+    cursor = Math.min(cursor, Math.max(0, list.length - 1));
+    suggest.hidden = !search.value.trim();
+    suggest.replaceChildren(...(list.length ? list.map((p, i) => el("button", { class: i === cursor ? "cur" : "",
+      onmousedown: e => { e.preventDefault(); pick(p); } },
+      el("span", { textContent: p.name }), el("span", { class: "price", textContent: formatPrice(p.price_kop) })))
+      : [el("div", { class: "none", textContent: "Не найдено" })]));
+  }
+  function pick(p) {
+    chosen.push(p.id);
+    search.value = "";
+    cursor = 0;
+    renderSuggest();
+    update();
+    search.focus();
+  }
+  search.addEventListener("input", () => { cursor = 0; renderSuggest(); });
+  search.addEventListener("blur", () => { suggest.hidden = true; });
+  search.addEventListener("focus", renderSuggest);
+  search.addEventListener("keydown", e => {
+    const list = candidates();
+    if (e.key === "ArrowDown") { cursor = Math.min(cursor + 1, list.length - 1); renderSuggest(); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { cursor = Math.max(cursor - 1, 0); renderSuggest(); e.preventDefault(); }
+    else if (e.key === "Enter" && list[cursor]) { pick(list[cursor]); e.preventDefault(); }
+    else if (e.key === "Escape") { search.value = ""; renderSuggest(); }
+  });
+
+  for (const inp of [cols, rows]) {
+    inp.addEventListener("input", update);
+    inp.addEventListener("change", () => { const [c, r] = grid(); cols.value = c; rows.value = r; update(); });
+  }
+  orgSel.addEventListener("change", update);
+  date.addEventListener("change", renderSheets);
+  $("p-all").addEventListener("click", () => {
+    const have = new Set(chosen);
+    chosen.push(...allProducts.map(p => p.id).filter(id => !have.has(id)));
+    update();
+  });
+  $("p-clear").addEventListener("click", () => { chosen = []; update(); });
+  $("p-print").addEventListener("click", () => window.print());
+
+  const saved = store.get();
+  cols.value = clamp(saved.cols, LIMITS.cols, 3);
+  rows.value = clamp(saved.rows, LIMITS.rows, 7);
+  chosen = Array.isArray(saved.products) ? saved.products.filter(Number.isInteger) : [];
+  date.value = today();
+
+  async function load() {
+    try {
+      [allProducts, allOrgs] = await Promise.all([api("GET", "/api/products"), api("GET", "/api/organizations")]);
+    } catch (e) {
+      toast(e.message);
+    }
+    allOrgs.sort((a, b) => a.name.localeCompare(b.name, "ru"));
+    allProducts.sort((a, b) => a.name.localeCompare(b.name, "ru"));
+    const want = orgSel.value || store.get().org || "";
+    orgSel.replaceChildren(el("option", { value: "", textContent: "— без организации —" }),
+      ...allOrgs.map(o => el("option", { value: String(o.id), textContent: o.name })));
+    orgSel.value = allOrgs.some(o => String(o.id) === want) ? want : (allOrgs[0] ? String(allOrgs[0].id) : "");
+    chosen = chosen.filter(id => byId(id));
+    update();
+  }
+  return { load };
+})();
+
 function showTab() {
   const names = [...document.querySelectorAll("#tabs .tab")].map(t => t.dataset.tab);
   const cur = names.includes(location.hash.slice(1)) ? location.hash.slice(1) : names[0];
   for (const t of document.querySelectorAll("#tabs .tab")) t.classList.toggle("active", t.dataset.tab === cur);
   for (const n of names) document.getElementById(n).hidden = n !== cur;
+  if (cur === "print") printForm.load();
 }
 document.getElementById("tabs").addEventListener("click", e => {
   const t = e.target.closest(".tab");
