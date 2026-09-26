@@ -109,9 +109,10 @@ td.actions { width: 1%; white-space: nowrap; text-align: right; }
   font-family: "Noto Sans", "DejaVu Sans", Arial, sans-serif; }
 .tag-org { flex: none; font-size: clamp(5px, min(7cqh, 5cqw), 5mm); font-weight: 600; text-transform: uppercase; letter-spacing: .02em;
   border-bottom: .3mm solid #000; padding-bottom: 1.5cqh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tag-name { flex: none; font-size: min(10cqh, 7cqw); font-weight: 600; line-height: 1.15; overflow: hidden; display: -webkit-box;
+.tag-name-box { flex: 1 0 auto; display: flex; align-items: center; justify-content: center; text-align: center; }
+.tag-name { font-size: min(10cqh, 7cqw); font-weight: 600; line-height: 1.15; overflow: hidden; display: -webkit-box;
   -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
-.tag-row { margin-top: auto; flex: none; display: flex; align-items: flex-end; justify-content: space-between; gap: 3cqw; }
+.tag-row { flex: none; display: flex; align-items: flex-end; justify-content: space-between; gap: 3cqw; }
 .tag-unit { font-size: min(7cqh, 5cqw); color: #333; white-space: nowrap; padding-bottom: .5cqh; }
 .tag-price { --fs: min(34cqh, calc(66cqw / var(--len, 3))); display: flex; align-items: flex-start; line-height: .9; font-weight: 800; }
 .tag-price .rub { font-size: var(--fs); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
@@ -419,7 +420,7 @@ const printForm = (() => {
     const kop = String(p.price_kop % 100).padStart(2, "0");
     return el("div", { class: "tag" }, el("div", { class: "tag-in" },
       el("div", { class: "tag-org", textContent: org || " " }),
-      el("div", { class: "tag-name", textContent: p.name, title: p.name }),
+      el("div", { class: "tag-name-box" }, el("div", { class: "tag-name", textContent: p.name, title: p.name })),
       el("div", { class: "tag-row" }, el("span", { class: "tag-unit", textContent: `за ${p.unit}` }),
         el("div", { class: "tag-price", style: `--len: ${Math.max(2.6, rub.replace(/\u202f/g, "").length + 0.3 * (rub.match(/\u202f/g) || []).length)}` }, el("span", { class: "rub", textContent: rub }), el("span", { class: "kop", textContent: kop }),
           el("span", { class: "cur", textContent: "₽" }))),
