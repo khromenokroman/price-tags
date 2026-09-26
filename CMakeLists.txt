@@ -21,6 +21,7 @@ configure_file(Version.in Version @ONLY)
 configure_file(systemd/${PROJECT_NAME}.service.in ${PROJECT_NAME}.service @ONLY)
 
 add_library(${PROJECT_NAME}-core STATIC
+        src/catalog.cpp
         src/config.cpp
         src/index_page.cpp
         src/web_server.cpp
@@ -38,6 +39,7 @@ if (BUILD_TESTS)
     enable_testing()
     find_package(GTest REQUIRED)
     add_executable(${PROJECT_NAME}-tests
+            tests/catalog_test.cpp
             tests/config_test.cpp
     )
     target_link_libraries(${PROJECT_NAME}-tests PRIVATE ${PROJECT_NAME}-core GTest::gmock GTest::gtest_main)
