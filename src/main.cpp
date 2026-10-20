@@ -13,7 +13,9 @@ int main(int argc, char *argv[]) {
     try {
         std::string_view const cfg_path = argc > 1 ? argv[1] : "/etc/price-tags/cfg.json";
         auto const cfg = load_config(cfg_path);
-        openlog("price-tags", LOG_PID | LOG_CONS, LOG_USER);
+        // вне systemd (Docker, терминал) syslog может отсутствовать: дублируем записи в stderr
+        int const log_options = std::getenv("JOURNAL_STREAM") == nullptr ? LOG_PID | LOG_CONS | LOG_PERROR : LOG_PID | LOG_CONS;
+        openlog("price-tags", log_options, LOG_USER);
         setlogmask(LOG_UPTO(cfg.log_level));
 
         sigset_t signals;
