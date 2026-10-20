@@ -1,11 +1,11 @@
-# Запуск price-tags в Docker: docker compose up -d, интерфейс http://адрес:8082/
+# Запуск price-tags в Docker: docker compose up -d, интерфейс http://адрес:8080/
 # Справочники организаций и товаров в томе price-tags-data. Авторизации нет: только доверенная сеть.
 services:
   price-tags:
     image: ghcr.io/khromenokroman/price-tags:latest
     restart: unless-stopped
     ports:
-      - "8082:8082"
+      - "8080:8080"
     volumes:
       - price-tags-data:/data
 

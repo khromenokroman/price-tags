@@ -18,5 +18,5 @@ COPY --from=build /out/usr/share/doc/price-tags /usr/share/doc/price-tags
 COPY docker/cfg.json /etc/price-tags/cfg.json
 USER price-tags
 VOLUME /data
-EXPOSE 8082
+EXPOSE 8080
 ENTRYPOINT ["/usr/bin/price-tags", "/etc/price-tags/cfg.json"]
