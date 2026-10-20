@@ -78,7 +78,7 @@
 500 если не удалось сохранить файл.
 
 ```bash
-curl -X POST http://127.0.0.1:8082/api/products -d '{"name": "Хлеб белый", "unit": "шт", "price_kop": 4590}'
+curl -X POST http://127.0.0.1:8080/api/products -d '{"name": "Хлеб белый", "unit": "шт", "price_kop": 4590}'
 ```
 
 Авторизации нет: изменить справочники может любой, кто достаёт до порта. Если страница нужна только на
@@ -120,14 +120,14 @@ ctest --test-dir build
 ```
 
 Единственный аргумент — путь к конфигурации, по умолчанию `/etc/price-tags/cfg.json`.
-Страница доступна по адресу `http://<хост>:8082/`.
+Страница доступна по адресу `http://<хост>:8080/`.
 
 ## Конфигурация
 
 | Поле | По умолчанию | Описание |
 |---|---|---|
 | `listen_addr` | `0.0.0.0` | адрес HTTP-сервера |
-| `port` | `8082` | порт HTTP-сервера |
+| `port` | `8080` | порт HTTP-сервера |
 | `log_level` | `6` | уровень syslog (0-7) |
 | `data_file` | `/var/lib/price-tags/catalog.json` | файл справочников |
 
@@ -168,7 +168,7 @@ wget https://raw.githubusercontent.com/khromenokroman/price-tags/master/docker-c
 sudo docker-compose up -d
 ```
 
-Страница: `http://<хост>:8082/`. Справочники в томе `price-tags-data` (`/data/catalog.json` в контейнере),
+Страница: `http://<хост>:8080/`. Справочники в томе `price-tags-data` (`/data/catalog.json` в контейнере),
 конфигурация образа в `docker/cfg.json`, журнал: `sudo docker-compose logs`. Обновление:
 `sudo docker-compose pull && sudo docker-compose up -d`. Авторизации нет, поэтому порт открывать только
 в доверенной сети.

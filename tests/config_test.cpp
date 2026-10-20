@@ -10,7 +10,7 @@ using testing::HasSubstr;
 TEST(ParseConfig, Defaults) {
     auto const cfg = parse_config(json::object());
     EXPECT_EQ(cfg.listen_addr, "0.0.0.0");
-    EXPECT_EQ(cfg.port, 8082);
+    EXPECT_EQ(cfg.port, 8080);
     EXPECT_EQ(cfg.log_level, 6);
     EXPECT_EQ(cfg.data_file, "/var/lib/price-tags/catalog.json");
 }

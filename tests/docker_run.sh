@@ -13,7 +13,7 @@ ok() { echo "ok    $*"; }
 bad() { echo "FAIL  $*"; fail=1; }
 cleanup() { docker rm -f "$NAME" >/dev/null 2>&1; docker volume rm -f "$VOLUME" >/dev/null 2>&1; }
 trap cleanup EXIT
-start() { docker run -d --name "$NAME" -p "127.0.0.1:$PORT:8082" -v "$VOLUME:/data" "$IMAGE" >/dev/null; }
+start() { docker run -d --name "$NAME" -p "127.0.0.1:$PORT:8080" -v "$VOLUME:/data" "$IMAGE" >/dev/null; }
 wait_http() { for _ in $(seq 100); do curl -sf "http://127.0.0.1:$PORT/api/products" >/dev/null && return 0; sleep 0.1; done; return 1; }
 API=http://127.0.0.1:$PORT/api
 

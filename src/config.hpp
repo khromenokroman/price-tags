@@ -9,7 +9,7 @@
 struct Config {
     std::string listen_addr{"0.0.0.0"};                        ///< Адрес, на котором слушает HTTP-сервер.
     std::string data_file{"/var/lib/price-tags/catalog.json"}; ///< Файл справочников организаций и товаров.
-    int port{8082};                                            ///< Порт HTTP-сервера.
+    int port{8080};                                            ///< Порт HTTP-сервера.
     int log_level{6};                                          ///< Уровень логирования syslog.
 };
 
