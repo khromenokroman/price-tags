@@ -156,10 +156,30 @@ apt install -y ./price-tags_<версия>_amd64.deb
 Служба работает от динамического пользователя без привилегий, справочники хранятся в `/var/lib/price-tags`
 (каталог создаёт systemd). При удалении пакета, в том числе с `purge`, справочники не удаляются.
 
+## Docker
+
+Образ `ghcr.io/khromenokroman/price-tags` (теги версий и `latest`, 80 МБ, Debian 13 slim, работает от
+пользователя uid 10001). Установка на машине с Docker:
+
+```bash
+sudo apt install docker.io docker-compose
+mkdir price-tags && cd price-tags
+wget https://raw.githubusercontent.com/khromenokroman/price-tags/master/docker-compose.yml
+sudo docker-compose up -d
+```
+
+Страница: `http://<хост>:8082/`. Справочники в томе `price-tags-data` (`/data/catalog.json` в контейнере),
+конфигурация образа в `docker/cfg.json`, журнал: `sudo docker-compose logs`. Обновление:
+`sudo docker-compose pull && sudo docker-compose up -d`. Авторизации нет, поэтому порт открывать только
+в доверенной сети.
+
+Проверка образа: `docker build -t price-tags:test . && tests/docker_run.sh price-tags:test`.
+
 ## Релизы
 
 Сборка настроена в GitHub Actions (`.github/workflows/release.yml`): на каждый push и pull request в `master`
-проект собирается в контейнерах Debian 12 и Debian 13, прогоняются тесты и собираются DEB-пакеты
+проект собирается в контейнерах Debian 12 и Debian 13, прогоняются тесты, собирается и проверяется образ
+Docker (по тегу он публикуется в GHCR) и собираются DEB-пакеты
 (`price-tags_<версия>_amd64-debian12.deb` и `…-debian13.deb`), они доступны в артефактах запуска и
 публикуются в релизе. Чтобы выпустить релиз,
 нужно поставить тег `v<версия>`, совпадающий с версией в `CMakeLists.txt`, и отправить его:
