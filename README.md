@@ -131,6 +131,9 @@ ctest --test-dir build
 | `log_level` | `6` | уровень syslog (0-7) |
 | `data_file` | `/var/lib/price-tags/catalog.json` | файл справочников |
 
+Журнал пишется в syslog (под systemd: `journalctl -u price-tags`). Вне systemd, например в Docker или при
+запуске из терминала, те же записи дублируются в stderr.
+
 ## Сборка DEB
 
 Пакет собирается через CPack. Собирать нужно на той же системе (или в контейнере с ней), куда пакет будет
