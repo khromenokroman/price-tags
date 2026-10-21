@@ -108,9 +108,14 @@ td.actions { width: 1%; white-space: nowrap; text-align: right; }
 .preview-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; color: var(--muted); }
 .preview-head h1 { font-size: 20px; margin: 0; font-weight: 650; color: var(--text); }
 .sheets { display: grid; gap: 24px; justify-content: start; }
-.sheet { width: 210mm; height: 296mm; padding: 8mm; background: #fff; color: #000; box-shadow: 0 2px 12px rgba(0,0,0,.18);
-  display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); grid-template-rows: repeat(var(--rows), minmax(0, 1fr)); }
-.tag { container-type: size; border: var(--bw, .3mm) var(--bs, dashed) var(--bc, #999999); margin: calc(var(--bw, .3mm) / -2); overflow: hidden; }
+.sheet { position: relative; width: 210mm; height: 296mm; padding: 8mm; background: #fff; color: #000; box-shadow: 0 2px 12px rgba(0,0,0,.18);
+  display: grid; gap: var(--gap, 0mm); grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); grid-template-rows: repeat(var(--rows), minmax(0, 1fr)); }
+.tag { container-type: size; border: var(--bw, .3mm) var(--bs, dashed) var(--bc, #999999); margin: var(--bm, -.15mm); overflow: hidden; }
+.cut { position: absolute; pointer-events: none; }
+.cut.v { top: 0; bottom: 0; margin-left: -.1mm; border-left: .2mm dashed #666;
+  left: calc(8mm + (100% - 16mm - (var(--cols) - 1) * var(--gap)) / var(--cols) * var(--i) + var(--gap) * (var(--i) - .5)); }
+.cut.h { left: 0; right: 0; margin-top: -.1mm; border-top: .2mm dashed #666;
+  top: calc(8mm + (100% - 16mm - (var(--rows) - 1) * var(--gap)) / var(--rows) * var(--i) + var(--gap) * (var(--i) - .5)); }
 .tag-in { height: 100%; display: flex; flex-direction: column; padding: 4cqmin 5cqmin; gap: 2.5cqh;
   font-family: "Noto Sans", "DejaVu Sans", Arial, sans-serif; }
 .tag-org { flex: none; text-align: center; font-size: clamp(5px, min(7cqh, 5cqw), 5mm); font-weight: 600; text-transform: uppercase; letter-spacing: .02em;
@@ -194,6 +199,14 @@ td.actions { width: 1%; white-space: nowrap; text-align: right; }
             <button class="btn link" id="p-border-reset" title="Вернуть пунктир 0.3 мм #999999">Сброс</button>
           </div>
           <div class="hint">толщина от 0 (без контура) до 2 мм</div>
+        </div>
+        <div class="field"><span>Зазор между ценниками</span>
+          <div class="scale">
+            <input id="p-gap" type="range" min="0" max="60" step="5" aria-label="Зазор между ценниками, мм">
+            <output id="p-gap-val"></output>
+            <button class="btn link" id="p-gap-reset" title="Без зазора">Сброс</button>
+          </div>
+          <div class="hint">до 6 мм; при зазоре посередине печатается пунктирная линия отрыва</div>
         </div>
         <div class="field"><span>Товары</span>
           <div class="picker">
@@ -422,6 +435,9 @@ const printForm = (() => {
   const BORDER_WIDTH = [0, 20, 3];
   const BORDER_DEF = { color: "#999999", style: "dashed" };
   const BORDER_STYLES = ["dashed", "solid"];
+  /* Зазор между ценниками в десятых долях мм. */
+  const GAP = [0, 60, 0];
+  const gap = $("p-gap");
   const bColor = $("p-bcolor"), bStyle = $("p-bstyle"), bWidth = $("p-bwidth");
   const orgSel = $("p-org"), cols = $("p-cols"), rows = $("p-rows"), search = $("p-search"),
     suggest = $("p-suggest"), chosenList = $("p-chosen"), sheets = $("p-sheets"), summary = $("p-summary");
@@ -433,11 +449,12 @@ const printForm = (() => {
   };
   function save() {
     store.set({ org: orgSel.value, cols: cols.value, rows: rows.value, scale: scale.value,
-      border: { color: bColor.value, style: bStyle.value, width: bWidth.value }, products: chosen });
+      border: { color: bColor.value, style: bStyle.value, width: bWidth.value }, gap: gap.value, products: chosen });
   }
 
   const clamp = (v, [lo, hi], def) => { const n = parseInt(v, 10); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : def; };
   const grid = () => [clamp(cols.value, LIMITS.cols, 3), clamp(rows.value, LIMITS.rows, 7)];
+  const gapMm = () => clamp(gap.value, GAP, GAP[2]) / 10;
   const byId = id => allProducts.find(p => p.id === id);
 
   const presetBox = $("p-presets");
@@ -465,13 +482,22 @@ const printForm = (() => {
     const items = chosen.map(byId).filter(Boolean);
     const pages = [];
     for (let i = 0; i < items.length; i += per) {
-      const sheet = el("div", { class: "sheet" }, ...items.slice(i, i + per).map(p => tag(p, org)));
+      const cuts = [];
+      if (gapMm() > 0) {
+        for (let k = 1; k < c; k++) cuts.push(el("div", { class: "cut v", style: `--i: ${k}` }));
+        for (let k = 1; k < r; k++) cuts.push(el("div", { class: "cut h", style: `--i: ${k}` }));
+      }
+      const sheet = el("div", { class: "sheet" }, ...items.slice(i, i + per).map(p => tag(p, org)), ...cuts);
       sheet.style.setProperty("--cols", c);
       sheet.style.setProperty("--rows", r);
       pages.push(sheet);
     }
     sheets.style.setProperty("--name-scale", clamp(scale.value, SCALE, SCALE[2]) / 100);
-    sheets.style.setProperty("--bw", `${clamp(bWidth.value, BORDER_WIDTH, BORDER_WIDTH[2]) / 10}mm`);
+    const bw = clamp(bWidth.value, BORDER_WIDTH, BORDER_WIDTH[2]) / 10;
+    sheets.style.setProperty("--bw", `${bw}mm`);
+    /* Без зазора соседние ценники делят одну линию контура, с зазором у каждого свой. */
+    sheets.style.setProperty("--bm", gapMm() > 0 ? "0mm" : `${-bw / 2}mm`);
+    sheets.style.setProperty("--gap", `${gapMm()}mm`);
     sheets.style.setProperty("--bs", bStyle.value);
     sheets.style.setProperty("--bc", bColor.value);
     sheets.replaceChildren(...pages);
@@ -504,7 +530,8 @@ const printForm = (() => {
   function update() {
     const [c, r] = grid();
     for (const b of presetBox.children) b.classList.toggle("active", b.textContent === `${c}×${r}`);
-    $("p-cell").textContent = `ячейка ${((194 / c)).toFixed(0)}×${((280 / r)).toFixed(0)} мм`;
+    const g = gapMm();
+    $("p-cell").textContent = `ячейка ${((194 - (c - 1) * g) / c).toFixed(0)}×${((280 - (r - 1) * g) / r).toFixed(0)} мм`;
     renderChosen();
     renderSheets();
     save();
@@ -561,6 +588,9 @@ const printForm = (() => {
   }
   for (const inp of [bColor, bStyle, bWidth]) inp.addEventListener("input", () => { showBorder(); renderSheets(); save(); });
   $("p-border-reset").addEventListener("click", () => { setBorder({}); renderSheets(); save(); });
+  const showGap = () => { $("p-gap-val").textContent = `${(gap.value / 10).toFixed(1)} мм`; };
+  gap.addEventListener("input", () => { showGap(); update(); });
+  $("p-gap-reset").addEventListener("click", () => { gap.value = GAP[2]; showGap(); update(); });
   $("p-all").addEventListener("click", () => {
     const have = new Set(chosen);
     chosen.push(...allProducts.map(p => p.id).filter(id => !have.has(id)));
@@ -576,6 +606,8 @@ const printForm = (() => {
   rows.value = clamp(saved.rows, LIMITS.rows, 7);
   scale.value = clamp(saved.scale, SCALE, SCALE[2]);
   showScale();
+  gap.value = clamp(saved.gap, GAP, GAP[2]);
+  showGap();
   setBorder(saved.border && typeof saved.border === "object" ? saved.border : {});
   chosen = Array.isArray(saved.products) ? saved.products.filter(Number.isInteger) : [];
 
