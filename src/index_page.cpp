@@ -82,8 +82,11 @@ td.actions { width: 1%; white-space: nowrap; text-align: right; }
 .grid-inputs input { width: 64px; }
 .scale { display: flex; align-items: center; gap: 10px; }
 .scale input[type=range] { flex: 1; accent-color: var(--accent); padding: 0; border: none; background: none; }
-.scale output { width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+.scale output { width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
 .hint { color: var(--muted); font-size: 12px; }
+.border-opts { display: flex; align-items: center; gap: 8px; }
+.border-opts input[type=color] { width: 44px; height: 32px; padding: 2px; cursor: pointer; }
+.border-opts select { flex: 1; }
 .picker { position: relative; }
 .picker input { width: 100%; }
 .suggest { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5; background: var(--panel); border: 1px solid var(--border);
@@ -107,7 +110,7 @@ td.actions { width: 1%; white-space: nowrap; text-align: right; }
 .sheets { display: grid; gap: 24px; justify-content: start; }
 .sheet { width: 210mm; height: 296mm; padding: 8mm; background: #fff; color: #000; box-shadow: 0 2px 12px rgba(0,0,0,.18);
   display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); grid-template-rows: repeat(var(--rows), minmax(0, 1fr)); }
-.tag { container-type: size; border: .3mm dashed #999; margin: -.15mm; overflow: hidden; }
+.tag { container-type: size; border: var(--bw, .3mm) var(--bs, dashed) var(--bc, #999999); margin: calc(var(--bw, .3mm) / -2); overflow: hidden; }
 .tag-in { height: 100%; display: flex; flex-direction: column; padding: 4cqmin 5cqmin; gap: 2.5cqh;
   font-family: "Noto Sans", "DejaVu Sans", Arial, sans-serif; }
 .tag-org { flex: none; text-align: center; font-size: clamp(5px, min(7cqh, 5cqw), 5mm); font-weight: 600; text-transform: uppercase; letter-spacing: .02em;
@@ -176,6 +179,21 @@ td.actions { width: 1%; white-space: nowrap; text-align: right; }
             <output id="p-scale-val"></output>
             <button class="btn link" id="p-scale-reset" title="Вернуть 100%">Сброс</button>
           </div>
+        </div>
+        <div class="field"><span>Контур ценника</span>
+          <div class="border-opts">
+            <input id="p-bcolor" type="color" aria-label="Цвет контура">
+            <select id="p-bstyle" aria-label="Линия контура">
+              <option value="dashed">Пунктир</option>
+              <option value="solid">Сплошная</option>
+            </select>
+          </div>
+          <div class="scale">
+            <input id="p-bwidth" type="range" min="0" max="20" step="1" aria-label="Толщина контура, мм">
+            <output id="p-bwidth-val"></output>
+            <button class="btn link" id="p-border-reset" title="Вернуть пунктир 0.3 мм #999999">Сброс</button>
+          </div>
+          <div class="hint">толщина от 0 (без контура) до 2 мм</div>
         </div>
         <div class="field"><span>Товары</span>
           <div class="picker">
@@ -400,6 +418,11 @@ const printForm = (() => {
   const $ = id => document.getElementById(id);
   const SCALE = [60, 200, 100];
   const scale = $("p-scale");
+  /* Толщина контура в десятых долях мм: [мин, макс, по умолчанию]. */
+  const BORDER_WIDTH = [0, 20, 3];
+  const BORDER_DEF = { color: "#999999", style: "dashed" };
+  const BORDER_STYLES = ["dashed", "solid"];
+  const bColor = $("p-bcolor"), bStyle = $("p-bstyle"), bWidth = $("p-bwidth");
   const orgSel = $("p-org"), cols = $("p-cols"), rows = $("p-rows"), search = $("p-search"),
     suggest = $("p-suggest"), chosenList = $("p-chosen"), sheets = $("p-sheets"), summary = $("p-summary");
   let allProducts = [], allOrgs = [], chosen = [], cursor = 0;
@@ -409,7 +432,8 @@ const printForm = (() => {
     set(v) { try { localStorage.setItem("print", JSON.stringify(v)); } catch (e) { /* хранилище недоступно */ } },
   };
   function save() {
-    store.set({ org: orgSel.value, cols: cols.value, rows: rows.value, scale: scale.value, products: chosen });
+    store.set({ org: orgSel.value, cols: cols.value, rows: rows.value, scale: scale.value,
+      border: { color: bColor.value, style: bStyle.value, width: bWidth.value }, products: chosen });
   }
 
   const clamp = (v, [lo, hi], def) => { const n = parseInt(v, 10); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : def; };
@@ -447,6 +471,9 @@ const printForm = (() => {
       pages.push(sheet);
     }
     sheets.style.setProperty("--name-scale", clamp(scale.value, SCALE, SCALE[2]) / 100);
+    sheets.style.setProperty("--bw", `${clamp(bWidth.value, BORDER_WIDTH, BORDER_WIDTH[2]) / 10}mm`);
+    sheets.style.setProperty("--bs", bStyle.value);
+    sheets.style.setProperty("--bc", bColor.value);
     sheets.replaceChildren(...pages);
     fitNames();
     const n = pages.length;
@@ -525,6 +552,15 @@ const printForm = (() => {
   const showScale = () => { $("p-scale-val").textContent = `${scale.value}%`; };
   scale.addEventListener("input", () => { showScale(); renderSheets(); save(); });
   $("p-scale-reset").addEventListener("click", () => { scale.value = SCALE[2]; showScale(); renderSheets(); save(); });
+  const showBorder = () => { $("p-bwidth-val").textContent = `${(bWidth.value / 10).toFixed(1)} мм`; };
+  function setBorder(b) {
+    bColor.value = /^#[0-9a-f]{6}$/i.test(b.color) ? b.color : BORDER_DEF.color;
+    bStyle.value = BORDER_STYLES.includes(b.style) ? b.style : BORDER_DEF.style;
+    bWidth.value = clamp(b.width, BORDER_WIDTH, BORDER_WIDTH[2]);
+    showBorder();
+  }
+  for (const inp of [bColor, bStyle, bWidth]) inp.addEventListener("input", () => { showBorder(); renderSheets(); save(); });
+  $("p-border-reset").addEventListener("click", () => { setBorder({}); renderSheets(); save(); });
   $("p-all").addEventListener("click", () => {
     const have = new Set(chosen);
     chosen.push(...allProducts.map(p => p.id).filter(id => !have.has(id)));
@@ -540,6 +576,7 @@ const printForm = (() => {
   rows.value = clamp(saved.rows, LIMITS.rows, 7);
   scale.value = clamp(saved.scale, SCALE, SCALE[2]);
   showScale();
+  setBorder(saved.border && typeof saved.border === "object" ? saved.border : {});
   chosen = Array.isArray(saved.products) ? saved.products.filter(Number.isInteger) : [];
 
   async function load() {
